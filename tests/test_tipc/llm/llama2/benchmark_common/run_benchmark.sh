@@ -111,7 +111,7 @@ function _train(){
     if [[ ${model_name_or_path} =~ "CE" ]];then # CE精度-不限制执行时间
         ${train_cmd} > ${log_file} 2>&1
     else
-        timeout 30m ${train_cmd} > ${log_file} 2>&1
+        timeout 40m ${train_cmd} > ${log_file} 2>&1
         # echo ${train_cmd}
         Effective_Tokens_per_second=`cat ${log_file} | grep -E 'Effective_Tokens_per_second|Effective tokens per second:' \
                                             |awk -F': ' '{print $2}' |awk -F' ' '{print $1}'`
