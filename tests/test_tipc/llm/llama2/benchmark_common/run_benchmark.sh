@@ -36,7 +36,7 @@ function _set_params(){
     skip_steps=0                  # (必选)解析日志，跳过模型前几个性能不稳定的step
     keyword="Effective_Tokens_per_second_per_gpu:"                 # (必选)解析日志，筛选出性能数据所在行的关键字
     is_large_model=True           # (可选)普通模型默认为False，如果添加大模型且只取一条ips设置为True
-    convergence_key="loss:"        # (可选)解析日志，筛选出收敛数据所在行的关键字 如：convergence_key="loss:"
+    convergence_key="Total_Tokens_per_second_per_gpu:"        # (可选)解析日志，筛选出收敛数据所在行的关键字 如：convergence_key="loss:"
 
     fp_item="bf16"
     # 以下为通用执行命令，无特殊可不用修改
@@ -116,8 +116,13 @@ function _train(){
         Effective_Tokens_per_second=`cat ${log_file} | grep -E 'Effective_Tokens_per_second|Effective tokens per second:' \
                                             |awk -F': ' '{print $2}' |awk -F' ' '{print $1}'`
         num_gpu=$(echo "$device_num" | sed 's/^.*C//')
-        ips=$(awk -v a="$Effective_Tokens_per_second" -v b="$num_gpu" 'BEGIN {printf "%.2f\n", a / b}')
-        echo "Effective_Tokens_per_second_per_gpu: ${ips}" >> ${log_file}
+        Effective_Tokens_per_second_per_gpu=$(awk -v a="$Effective_Tokens_per_second" -v b="$num_gpu" 'BEGIN {printf "%.2f\n", a / b}')
+        echo "Effective_Tokens_per_second_per_gpu: ${Effective_Tokens_per_second_per_gpu}" >> ${log_file}
+        Tokens_per_second_per_gpu=`cat ${log_file} | grep 'train_samples_per_second' \
+                                            |awk -F': ' '{print $2}' |awk -F', ' '{print $1}'`
+        length=4096
+        Total_Tokens_per_second_per_gpu=$(awk -v a="$Tokens_per_second_per_gpu" -v b="$length" 'BEGIN {printf "%.2f\n", a * b}')
+        echo "Total_Tokens_per_second_per_gpu: ${Total_Tokens_per_second_per_gpu}" >> ${log_file}
     fi
     if [ $? -ne 0 ];then
         echo -e "${model_name}, FAIL"
