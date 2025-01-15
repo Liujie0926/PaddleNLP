@@ -119,7 +119,7 @@ function _train(){
         Effective_Tokens_per_second_per_gpu=$(awk -v a="$Effective_Tokens_per_second" -v b="$num_gpu" 'BEGIN {printf "%.2f\n", a / b}')
         echo "Effective_Tokens_per_second_per_gpu: ${Effective_Tokens_per_second_per_gpu}" >> ${log_file}
         Tokens_per_second_per_gpu=`cat ${log_file} | grep 'train_samples_per_second' \
-                                            |awk -F': ' '{print $2}' |awk -F', ' '{print $1}'`
+                                            |awk -F'train_samples_per_second: ' '{print $2}' |awk -F', ' '{print $1}'`
         length=4096
         Total_Tokens_per_second_per_gpu=$(awk -v a="$Tokens_per_second_per_gpu" -v b="$length" 'BEGIN {printf "%.2f\n", a * b}')
         echo "Total_Tokens_per_second_per_gpu: ${Total_Tokens_per_second_per_gpu}" >> ${log_file}
