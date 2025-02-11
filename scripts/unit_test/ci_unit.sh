@@ -52,6 +52,18 @@ set_env() {
     export FLAGS_use_cuda_managed_memory=true
 }
 
+print_info() {
+    if [ $1 -ne 0 ]; then
+        mv ${nlp_dir}/unittest_logs/unittest.log ${nlp_dir}/unittest_logs/unittest_FAIL.log
+        echo -e "\033[31m ${nlp_dir}/unittest_logs/unittest_FAIL \033[0m"
+        tail ${nlp_dir}/unittest_logs/unittest_FAIL.log
+        cat ${nlp_dir}/unittest_logs/unittest_FAIL.log |grep failed |grep -v "Skip"
+    else
+        tail -1 ${nlp_dir}/unittest_logs/unittest.log
+        echo -e "\033[32m ${log_path}/unittest_SUCCESS \033[0m"
+    fi
+}
+
 install_requirements
 set_env
 pytest -v -n 8 \
@@ -60,13 +72,10 @@ pytest -v -n 8 \
   --timeout 200 --durations 20 \
   --cov paddlenlp --cov-report xml:coverage.xml \
   --alluredir=result 2>&1 | tee ${nlp_dir}/unittest_logs/unittest.log
-UT_EXCODE=$? || true
-if [ $UT_EXCODE -ne 0 ] ; then
-    mv ${nlp_dir}/unittest_logs/unittest.log ${nlp_dir}/unittest_logs/unittest_FAIL.log
-else
-    cd ${nlp_dir}
-    echo -e "\033[35m ---- Genrate Allure Report  \033[0m"
-    cp scripts/regression/gen_allure_report.py ./
-    python gen_allure_report.py
-    echo -e "\033[35m ---- Report: https://xly.bce.baidu.com/ipipe/ipipe-report/report/${AGILE_JOB_BUILD_ID}/report/  \033[0m"
-fi
+print_info $? unittest
+
+cd ${nlp_dir}
+echo -e "\033[35m ---- Genrate Allure Report  \033[0m"
+cp scripts/regression/gen_allure_report.py ./
+python gen_allure_report.py
+echo -e "\033[35m ---- Report: https://xly.bce.baidu.com/ipipe/ipipe-report/report/${AGILE_JOB_BUILD_ID}/report/  \033[0m"
