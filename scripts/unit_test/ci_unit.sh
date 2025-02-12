@@ -67,6 +67,7 @@ pytest -v -n 8 \
   --dist loadgroup \
   --retries 1 --retry-delay 1 \
   --timeout 200 --durations 20 \
-  --cov paddlenlp --cov-report xml:coverage.xml 2>&1 | \
+  --cov paddlenlp --cov-report xml:coverage.xml \
+  2> ${nlp_dir}/unittest_logs/unittest_errors.log | \
   tee ${nlp_dir}/unittest_logs/unittest.log
 print_info $? unittest
